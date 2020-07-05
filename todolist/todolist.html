@@ -1,0 +1,102 @@
+<script>
+    function get(){
+        var storage = window.localStorage
+        for(var i=0;i<storage.length;i++){
+            var key = storage.key(i)
+            if (key>=0){
+                var todolist = document.querySelector('#todolist')
+                var div = document.createElement('div')
+                var text = handleLocalStorage('get',key,null)
+                div.innerHTML =
+                    '<i class="todo">' + text + '</i>' +
+                    '<button onclick="finish(this)">√</button> ' +
+                    '<button onclick="deleteList(this)">X</button>'
+                todolist.appendChild(div)
+            }else {
+                var finishedlist = document.querySelector('#finishedlist')
+                var div = document.createElement('div')
+                div.style.cssText = "text-decoration:line-through"
+                var text = handleLocalStorage('get',key,null)
+                div.innerHTML =
+                    '<i class="finished">' + text + '</i>' +
+                    '<button onclick="finish(this)">√</button> ' +
+                    '<button onclick="deleteList(this)">X</button>'
+                finishedlist.appendChild(div)
+            }
+        }
+        handleLocalStorage('clear',null,null)
+    }
+
+    function newList() {
+        var todolist = document.querySelector('#todolist')
+        var div = document.createElement('div')
+        var text = document.getElementById("text").value
+        div.innerHTML =
+            '<i class="todo">' + text + '</i>' +
+            '<button onclick="finish(this)">√</button> ' +
+            '<button onclick="deleteList(this)">X</button>'
+        todolist.appendChild(div)
+    }
+    function finish(id) {
+        var todolist = document.querySelector('#todolist')
+        var finishedlist = document.querySelector('#finishedlist')
+        id.parentElement.style.cssText = "text-decoration:line-through"
+        var ns = id.previousSibling
+        ns.className = "finished"
+        var finishedEvent = todolist.removeChild(id.parentNode)
+        finishedlist.appendChild(finishedEvent)
+    }
+    function deleteList(id) {
+        var father = id.parentElement.parentElement
+        father.removeChild(id.parentNode)
+    }
+    function save() {
+        var textTodo = document.getElementsByClassName("todo")
+        var textFinished = document.getElementsByClassName("finished")
+        for (var i=0;i<textTodo.length;i++){
+            //document.cookie= "text="+ text[i].innerText + ";expires=" + date.toGMTString() + ";";
+            handleLocalStorage('set',i,textTodo[i].innerText)
+        }
+        for (var i=0;i<textFinished.length;i++){
+            handleLocalStorage('set',-i-1,textFinished[i].innerText)
+        }
+        console.log(document.cookie)
+    }
+    function handleLocalStorage(method,key,value) {
+        switch (method) {
+            case 'get' :{
+                let temp = window.localStorage.getItem(key)
+                if(temp){
+                    return temp
+                }else {
+                    return false
+                }
+            }
+            case 'set':{
+                window.localStorage.setItem(key,value)
+                break
+            }
+            case 'clear':{
+                window.localStorage.clear()
+            }
+            default:{
+                return false
+            }
+        }
+    }
+</script>
+
+<html>
+<meta charset="utf-8">
+<head>
+    <title>ToDoList</title>
+</head>
+<body onload="get()" onbeforeunload="save()">
+    <h1>ToDoList</h1>
+    <input id="text">
+    <button onclick="newList()">new</button>
+    <div id="todolist" ></div>
+    <div id="finishedlist"></div>
+</body>
+
+</html>

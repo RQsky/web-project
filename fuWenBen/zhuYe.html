@@ -1,0 +1,69 @@
+<script src="./jQuery.js"></script>
+<script>
+
+    var selection;
+    var range;
+
+    $(function () {
+        $('.text').text("2222222");
+    })
+
+    function execute(cmd, args = null) {
+        var s = window.getSelection();
+        if (s.isCollapsed && cmd === "bold" && !range.collapsed) {
+            if (s.rangeCount > 0) s.removeAllRanges();
+            s.addRange(range);
+        }
+        document.execCommand(cmd, false, args)
+    }
+
+    function HExecute(className, cmd) {
+        let H = $(className).val();
+        execute(cmd, H);
+    }
+
+    function selectChange() {
+        // 保存选中的对象
+        range = window.getSelection().getRangeAt(0);
+    }
+
+</script>
+
+<div class="body">
+    <div class="menu">
+        <span><button onclick="execute('bold')"><b>B</b></button></span>
+        <span>
+            <select class="H-select" onchange="HExecute('.H-select','formatBlock')">
+                <option>H1</option>
+                <option>H2</option>
+                <option>H3</option>
+                <option>H4</option>
+            </select>
+        </span>
+        <span>
+            <select class="C-select" onchange="HExecute('.C-select','foreColor')">
+                <option value="red">红</option>
+                <option value="black">黑</option>
+                <option value="blue">蓝</option>
+                <option value="white">白</option>
+            </select>
+        </span>
+    </div>
+    <div class="text" contenteditable="true" onmouseup="selectChange()">
+
+    </div>
+</div>
+
+<style>
+    .text {
+        border: solid 1px black;
+        width: 800px;
+        height: 500px;
+    }
+
+    .menu {
+        border: solid 1px black;
+        width: 800px;
+        height: 30px;
+    }
+</style>
