@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<!--    编码-->
+    <meta charset="utf-8">
+    <title>天气预报</title>
+<!--    调用jquery-->
+    <script type="text/javascript" src="jquery-3.5.1.min.js"></script>
+<!--    百度的绘图插件-->
+    <script src="echarts.min.js"></script>
+    <h1>当前城市：<a id="name"></a></h1>
+</head>
+
+<body>
+    <div>天气：<a id="whether"></a></div>
+    <div>温度：<a id="temperature"></a>℃</div>
+    <div>空气质量指数：<a id="pm"></a></div>
+    <div id="main" style="width: 600px;height:400px;margin-top: 30px"></div>
+<script type="text/javascript">
+
+    // 获取城市
+    const cityUrl = "http://api.map.baidu.com/location/ip?ak=HoMbCtxLMaHb83BuND46khAu5YC4Gx2Q&coor=bd09ll"
+    const myKey = "d39f330bcd9b4acf96a6c4d6f0a7fffc"
+    const myBusKey = "857f442bfa9e469aac9e5ea60feff1fa"
+    const city = {}
+    const whether = {}
+    const air = {}
+    const hour = {}
+    const x = 0
+    const y = 0
+    const whetherUrl = "https://devapi.heweather.net/v7/weather/now?"
+    const hourUrl = "https://api.heweather.net/v7/weather/24h?"
+    const airUrl = "https://devapi.heweather.net/v7/air/now?"
+
+
+
+    $(document).ready(function () {  //加载完成后调用
+        $.ajax({                     //发送http请求
+            url:cityUrl,             //根据IP/浏览器定位
+            type:"GET",              //http get
+            async:false,// 设置同步。ajax默认异步  ------解决跨域请求，
+            dataType: 'jsonp',
+            jsonp:'callback',//传递给请求处理程序或页面的，用以获得jsonp回调函数名的参数名(默认为:callback)
+            jsonpCallback:"callback",//自定义的jsonp回调函数名称，默认为jQuery自动生成的随机函数名
+            contentType: 'application/json; charset=utf-8',
+            success:function (result) {
+                const city = result
+                console.log(city)      //打印result
+                $("#name").text(city.content.address);  //把标签里的文本设成括号里的内容
+                const x = city.content.point.x
+                const y = city.content.point.y
+                requestWhether(x,y)
+            },
+            error:function (error) {
+                console.log(`Error ${error}`)
+            }
+        })                //定位城市，经纬度
+    })
+    function requestWhether(x,y) {
+        $.ajax({
+            url:whetherUrl + "location=" + x + "," + y + "&key=" + myKey,
+            type:"GET",
+            async:false,
+            success:function (result) {
+                const whether = result
+                console.log(whether)
+                $("#whether").text(whether.now.text);
+                $("#temperature").text(whether.now.temp);
+
+            },
+            error:function (error) {
+                console.log(`Error ${error}`)
+            }
+        })                //天气详情
+        $.ajax({
+            url:airUrl + "location=" + x + "," + y + "&key=" + myKey,
+            type:"GET",
+            async:false,
+            success:function (result) {
+                const air = result
+                console.log(air)
+                $("#pm").text(air.now.aqi);
+            },
+            error:function (error) {
+                console.log(`Error ${error}`)
+            }
+        })             //pm2.5指数
+        $.ajax({
+            url: hourUrl+ "location=" + x + "," + y + "&key=" + myBusKey,
+            type:"GET",
+            async:false,
+            success:function (result) {
+                const hour = result.hourly
+                var temp = []
+                var humidity = []
+                console.log(hour)
+                for (var i=0;i<12;i++){
+                    temp[i] = hour[i].temp
+                    humidity[i] = hour[i].humidity
+                }
+                setChart(temp,humidity)
+            },
+            error:function (error) {
+                console.log(`Error ${error}`)
+            }
+        })          //24小时天气
+    }
+    function setChart(temp,humidity) {
+        var myChart = echarts.init(document.getElementById('main'));
+
+        // 指定图表的配置项和数据
+        var option = {
+            title: {
+                text: '未来12小时温度和湿度'
+            },
+            tooltip: {
+                trigger: 'axis'
+            },
+            legend: {
+                data: ['温度','湿度' ]
+            },
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '3%',
+                containLabel: true
+            },
+            toolbox: {
+                feature: {
+                    saveAsImage: {}
+                }
+            },
+            xAxis: {
+                type: 'category',
+                data: [1,2,3,4,5,6,7,8,9,10,11,12]
+            },
+            yAxis: {
+                type: 'value'
+            },
+            series: [{
+                name: '温度',
+                data: temp,
+                type: 'line'
+            },
+            {
+                name: '湿度',
+                data: humidity,
+                type: 'line'
+            }]
+        };
+
+        // 使用刚指定的配置项和数据显示图表。
+        myChart.setOption(option);
+    }
+
+</script>
+
+</body>
+
+</html>
